@@ -1,0 +1,61 @@
+<!-- 公众号文章风格模板（微信草稿箱兼容版） -->
+<!-- 使用说明： -->
+<!-- 1. 先用 gen_cover.py 生成封面；若使用 --theme，封面/Banner 自动生成 -->
+<!-- 2. 同步时加 --auto-images --topic "文章主题"，脚本会自动从 ima 抓取产品图并替换 {{IMG_*}} 占位符 -->
+<!-- 3. 替换/保留下面 {{}} 占位符 -->
+<!-- 4. 用 sync_wechat_draft.py --html 本文件 --theme xxx --topic "主题" --auto-images 同步 -->
+
+<div style="font-size:16px; line-height:1.8; color:#333333;">
+
+  <!-- 顶部 Banner 图片（微信对 div 背景色过滤严重，首图建议用图片） -->
+  <p style="text-align:center; margin:0 0 24px;">
+    <img src="{{BANNER_URL}}" style="width:100%; max-width:100%; display:block;">
+  </p>
+
+  <!-- 引言 -->
+  <p style="margin:0 0 18px; text-align:justify;">{{LEAD}}</p>
+
+  {{IMG_HERO}}
+
+  <!-- 章节模板：复制多个，改编号和标题 -->
+  <p style="margin:28px 0 16px;">
+    <span style="background-color:{{THEME_COLOR}}; color:#ffffff; padding:3px 10px; font-size:16px; font-weight:bold;">1</span>
+    <span style="font-size:20px; font-weight:bold; color:{{THEME_COLOR}}; margin-left:8px;">{{SECTION_TITLE}}</span>
+  </p>
+  <p style="margin:0 0 18px; text-align:justify;">{{SECTION_CONTENT}}</p>
+
+  {{IMG_OVERVIEW}}
+
+  <!-- 高亮提示框 -->
+  <p style="background-color:{{TINT_COLOR}}; color:{{THEME_COLOR}}; padding:14px 16px; margin:18px 0 28px; font-weight:bold; text-align:justify;">{{HIGHLIGHT_TEXT}}</p>
+
+  {{IMG_FINANCE}}
+
+  <!-- 表格（微信支持基础 table，但单元格背景色可能被过滤） -->
+  <table style="width:100%; border-collapse:collapse; margin:16px 0 20px; font-size:15px; border:1px solid #cccccc;">
+    <tr>
+      <th style="padding:12px; border:1px solid #cccccc; text-align:left; font-weight:bold; background-color:{{THEME_COLOR}}; color:#ffffff;">列1</th>
+      <th style="padding:12px; border:1px solid #cccccc; text-align:center; font-weight:bold; background-color:{{THEME_COLOR}}; color:#ffffff;">列2</th>
+    </tr>
+    <tr><td style="padding:12px; border:1px solid #cccccc;">内容1</td><td style="padding:12px; border:1px solid #cccccc; text-align:center;">内容2</td></tr>
+  </table>
+
+  {{IMG_PROJECT}}
+  {{IMG_CONTRACT}}
+  {{IMG_INVENTORY}}
+
+  <!-- 结尾二维码卡片（后续每一篇默认自带，颜色跟随主题；只换 QR_URL / WECHAT_ID） -->
+  <table style="width:100%; border-collapse:collapse; margin-top:32px; border:1px solid {{END_COLOR}}; background-color:{{END_BG}};">
+    <tr>
+      <td style="padding:20px; width:160px; text-align:center; vertical-align:middle;">
+        <img src="{{QR_URL}}" style="width:140px; height:140px;">
+      </td>
+      <td style="padding:20px 20px 20px 0; vertical-align:middle;">
+        <p style="margin:0 0 10px; font-size:20px; font-weight:bold; color:{{END_COLOR}};">添加领取专属行业软件方案</p>
+        <p style="margin:0 0 4px; font-size:15px; color:#555555;">微信号：</p>
+        <p style="margin:0; font-size:18px; font-weight:bold; color:#333333;">{{WECHAT_ID}}</p>
+      </td>
+    </tr>
+  </table>
+
+</div>
