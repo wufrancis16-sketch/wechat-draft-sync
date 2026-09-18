@@ -1,0 +1,23 @@
+# 个人配置（含二维码/微信号/知识库 ID），不要提交
+config.json
+
+# ima 抓图测试产物
+_ima_fetch_test/
+
+# 生成的封面 / Banner
+cover*.png
+banner*.png
+output/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
