@@ -13,7 +13,8 @@
       "id": ""
     },
     "api_base": "openapi/wiki/v1",
-    "ima_api_script": "~/.workbuddy/skills/ima-skills/ima_api.cjs"
+    "ima_api_script": "~/.workbuddy/skills/ima-skills/ima_api.cjs",
+    "_ima_api_script_hint": "按你的宿主改这个路径。WorkBuddy: ~/.workbuddy/skills/ima-skills/ima_api.cjs ；Codex: ~/.agents/skills/ima-skills/ima_api.cjs（或 ~/.codex/skills/ima-skills/ima_api.cjs）。路径不对会抓不到产品图。"
   },
   "product_image_map": {
     "好业财": {

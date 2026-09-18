@@ -21,11 +21,38 @@ agent_created: true
 - 用户要求把 markdown 或自定义 HTML 推送到公众号草稿箱。
 - 用户提到某个选题，希望「先看看我知识库里有没有相关内容再写」。
 
+## Host environment（WorkBuddy / Codex 双宿主）
+
+本技能同时支持 **WorkBuddy** 与 **Codex CLI**（`SKILL.md` 是跨 Agent 的开放标准，两边都读它）。**先判断当前宿主，再决定路径与注意事项。**
+
+| 维度 | WorkBuddy | Codex CLI |
+|------|-----------|-----------|
+| 用户级技能目录 | `~/.workbuddy/skills/<技能名>/` | `~/.agents/skills/<技能名>/`（官方 USER 位置）<br>`~/.codex/skills/`（= `$CODEX_HOME/skills`，多数版本也认） |
+| 仓库级技能目录 | `<repo>/.workbuddy/skills/` | `<repo>/.agents/skills/`（从 CWD 逐级向上扫到仓库根） |
+| 唤起方式 | `/wechat-draft-sync` 或 `@skill:wechat-draft-sync` | 先 `/skills` 列出，再 `$wechat-draft-sync <需求>` |
+| 项目常驻规则 | 无（用技能 + `MEMORY.md`） | `AGENTS.md`（仓库根/各层）+ 全局 `~/.codex/AGENTS.md` |
+| 执行环境 | 本机直接执行 | **默认沙箱 + 审批**，联网/写家目录可能被拦 |
+| ima 技能安装位置 | `~/.workbuddy/skills/ima-skills/` | `~/.agents/skills/ima-skills/` 或 `~/.codex/skills/ima-skills/` |
+
+**Codex 宿主专属要点**（其余流程完全一致）：
+1. **沙箱**：本技能必须联网（`api.weixin.qq.com`、`ima.qq.com`）并写 `~/.config/ima/` 与临时/输出目录。需在 `~/.codex/config.toml` 放行（字段名以版本为准）：
+   ```toml
+   approval_policy = "on-request"
+   sandbox_mode    = "workspace-write"
+
+   [sandbox_workspace_write]
+   network_access = true
+   ```
+   临时批处理也可用 `codex exec --full-auto "..."`。
+2. **技能发现**：目录里文件名必须正好是 `SKILL.md`；改动后若未生效**重启 Codex**；装的技能多时描述会被截断，可显式 `$wechat-draft-sync` 点名。
+3. **路径差异**：`config.json` 的 `ima.ima_api_script` 要指向**当前宿主**的 ima 安装位置（Codex 上是 `~/.agents/skills/ima-skills/ima_api.cjs`）。这是 Codex 上「抓不到图」的第一大原因。
+
 ## Dependencies
 - Python 3 with `requests`、`markdown`、`Pillow`：`pip install requests markdown Pillow`。
-- 已安装并配置好 `ima-skills`：凭证在 `~/.config/ima/client_id` 与 `~/.config/ima/api_key`；脚本路径在 `config.json` 的 `ima.ima_api_script`。
+- **Node.js**（仅「自动抓产品图」需要，用于调用 ima 知识库 CLI）。脚本按 `$NODE_BIN` → `which node` → `node` 三级回退；找不到时设 `NODE_BIN=/path/to/node`。
+- 已安装并配置好 `ima-skills`：凭证在 `~/.config/ima/client_id` 与 `~/.config/ima/api_key`（**两个宿主共用同一份凭证**）；脚本路径见 `config.json` 的 `ima.ima_api_script`。
 - 网络需能访问 `api.weixin.qq.com`（微信）与 `ima.qq.com`（知识库）。
-- 封面/Banner 生成需要 Windows 中文字体（msyhbd.ttc / msyh.ttc / simhei.ttf）。
+- 封面/Banner 生成需要系统中文字体（Windows：msyhbd.ttc / msyh.ttc / simhei.ttf；macOS/Linux 会自动回退到系统可用中文字体）。
 
 ---
 
@@ -40,7 +67,8 @@ agent_created: true
    ```
 2. **用 `ima_api.cjs` 检索素材**（脚本路径见 `config.json` 的 `ima.ima_api_script`；接口统一在 `openapi/wiki/v1/` 下，注意不是顶层文档里写的 `openapi/list_*` 那些 404 路径）：
    ```bash
-   IMA="$HOME/.workbuddy/skills/ima-skills/ima_api.cjs"
+   IMA=<当前宿主的 ima_api.cjs 路径>   # WorkBuddy: ~/.workbuddy/skills/ima-skills/ima_api.cjs
+                                       # Codex:     ~/.agents/skills/ima-skills/ima_api.cjs（或 ~/.codex/skills/...）
    OPTS=$(printf '{"clientId":"%s","apiKey":"%s"}' "$(cat ~/.config/ima/client_id)" "$(cat ~/.config/ima/api_key)")
    KB="<你的主知识库ID>"   # 小白知识库（主素材库，见 config.json ima.primary_kb.id）
 
@@ -123,7 +151,7 @@ python scripts/sync_wechat_draft.py \
 
 ### 常见问题
 - **抓取失败 / 0 张图**：检查 ima 凭证是否过期、文件夹 ID 是否变动、图片标题是否与 `slots[].pick` 匹配。
-- **`ima_api error: {"code":-200,...发现新版本 skill：1.1.x}`**：ima 技能有版本门禁。下载 `https://app-dl.ima.qq.com/skills/ima-skills-<新版本>.zip`，解压后把 `ima_api.cjs` / `meta.json` / `SKILL.md`（含 `notes/`、`knowledge-base/`）覆盖到 `~/.workbuddy/skills/ima-skills/` 即可（脚本按 `meta.json` 里的 version 上报，无需改代码）。
+- **`ima_api error: {"code":-200,...发现新版本 skill：1.1.x}`**：ima 技能有版本门禁。下载 `https://app-dl.ima.qq.com/skills/ima-skills-<新版本>.zip`，解压后把 `ima_api.cjs` / `meta.json` / `SKILL.md`（含 `notes/`、`knowledge-base/`）覆盖到**当前宿主的 `ima-skills/` 目录**（WorkBuddy：`~/.workbuddy/skills/ima-skills/`；Codex：`~/.agents/skills/ima-skills/`）即可（脚本按 `meta.json` 里的 version 上报，无需改代码）。
 - **草稿开头多出图片 + 一行 code**：见上方历史 bug；已修，若复现先确认 `insert_product_images` 没被改回裸偏移插入。
 - **想放非产品图**：关闭 `--auto-images`，手动在 HTML 里用 `<img>` 引用已上传的微信图片 URL。
 
